@@ -39,33 +39,43 @@ router.post("/login",
   // console.log("input console log",req.body,testch(req.body));
   var ret = false;
   steem.api.getAccounts([req.body.username],function(err,result){
-    var pubWif = result[0].posting.key_auths[0][0];
-    var privWif = req.body.password;
-    var isvalid;
-    try{isvalid = steem.auth.wifIsValid(privWif,pubWif);}
-    catch(e){isvalid = false;}
-    if(isvalid==true){
-      ret = isvalid;
-      console.log('good');
+
+    if(!result[0]){
+      console.log("no id");
+      req.flash("errors",errors);
+      res.redirect("/login");
     }else{
-      ret = isvalid;
-      console.log('no');
+      var pubWif = result[0].posting.key_auths[0][0];
+      var privWif = req.body.password;
+      var isvalid;
+      try{isvalid = steem.auth.wifIsValid(privWif,pubWif);}
+      catch(e){isvalid = false;}
+      if(isvalid==true){
+        ret = isvalid;
+        console.log('good');
+      }else{
+        ret = isvalid;
+        console.log('no');
+      }
+
+      if(isvalid){
+       // next();
+       errors.username = "is correct steemid after going...";
+       req.flash("errors",errors);
+       res.redirect("/login");
+      } else {
+       req.flash("errors",errors);
+       res.redirect("/login");
+      }
     }
   });
   if(!req.body.username){
-   isValid = false;
+   isvalid = false;
    errors.username = "Username is required!";
   }
   if(!req.body.password){
-   isValid = false;
+   isvalid = false;
    errors.password = "Password is required!";
-  }
-
-  if(isValid){
-   next();
-  } else {
-   req.flash("errors",errors);
-   res.redirect("/login");
   }
  },
  passport.authenticate("local-login", {
@@ -81,24 +91,3 @@ router.get("/logout", function(req, res) {
 });
 
 module.exports = router;
-
-//functions
-function testch(data){
-  var ret = false;
-  steem.api.getAccounts([data.username],function(err,result){
-          console.log('data is : ',result);
-          var pubWif = result[0].posting.key_auths[0][0];
-          var privWif = data.password;
-          var isvalid;
-          try{isvalid = steem.auth.wifIsValid(privWif,pubWif);}
-          catch(e){isvalid = false;}
-          if(isvalid==true){
-            ret = isvalid;
-            console.log('good');
-          }else{
-            ret = isvalid;
-            console.log('no');
-          }
-        });
-  return ret;
-}
