@@ -1,0 +1,86 @@
+<!-- views/users/index.ejs -->
+
+﻿<!DOCTYPE html>
+<html>
+ <head>
+  <% include ../partials/head %>
+ </head>
+ <body>
+  <% include ../partials/nav %>
+  <div class="container">
+    <h3>Socket.io Chat Example</h3>
+    <form class="form-inline">
+      <div class="form-group">
+        <label for="msgForm">Message: </lable>
+          <input type="text" class="form-control" id="msgForm">
+      </div>
+      <button type="submit" class="btn btn-primary" id="send">Send</button>
+      <button type="submit" class="btn btn-primary" id="gameStart">GameStart</button>
+      <button type="submit" class="btn btn-primary" id="yes">네</button>
+      <button type="submit" class="btn btn-primary" id="no">아니오</button>
+    </form>
+    <div id="chatLogs"></div>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    $(function(){
+      var socket = io();
+
+      socket.emit("login",{
+        name: makeRandomName(),
+        userid: "devpark@gmail.com"
+      });
+
+
+      socket.on("login",function(data){
+        $("#chatLogs").append("<div><strong>"+data+"</strong> has joined</div>");
+      });
+
+      // 서버 메세지 수신시
+      socket.on("chat",function(data){
+        $("#chatLogs").append("<div>"+data.msg +" : from <strong>"+data.from.name+"</strong></div>");
+      });
+
+      // send 버튼 클릭
+      // $("form").submit(function(e){
+      //   e.preventDefault();
+      //   var $msgForm = $("#msgForm");
+      //   //서버로 메세지를 전송한다.
+      //   socket.emit("chat",{msg:$msgForm.val()});
+      //   $msgForm.val("");
+      // });
+      //
+      $('#send').click(function(e){
+        e.preventDefault();
+        var $msgForm = $("#msgForm");
+        //서버로 메세지를 전송한다.
+        socket.emit("chat",{msg:$msgForm.val()});
+        $msgForm.val("");
+      });
+      $('#yes').click(function(e){
+        e.preventDefault();
+        socket.emit('selectyes');
+      });
+      $('#no').click(function(e){
+        e.preventDefault();
+        socket.emit('selectno');
+      });
+      $('#gameStart').click(function(e){
+        e.preventDefault();
+        // $("#chatLogs").append("<div> GameStart  <strong> Right now!</strong></div>");
+        socket.emit('gameStart',{msg:'go game!'});
+      });
+
+      function makeRandomName(){
+        var name = "";
+        var possible = "abcdefghijklmnopqrstuvwxyz";
+        for(var i = 0;i<3;i++){
+          name += possible.charAt(Math.floor(Math.random()*possible.length));
+        }
+        return name;
+      }
+    });
+  </script>
+ </body>
+</html>
